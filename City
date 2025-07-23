@@ -1,0 +1,11 @@
+using System.Data;
+
+namespace StudentTeacher.city;
+
+public class City
+{
+  
+    public int Id { get; init; }
+    public string? Name { get; init; }
+    public ICollection<Student.Student> Students { get; set; } = new List<Student.Student>();
+}
