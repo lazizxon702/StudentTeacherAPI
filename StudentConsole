@@ -1,0 +1,176 @@
+using Microsoft.EntityFrameworkCore;
+
+namespace StudentTeacher.Student;
+
+public static class StudentConsole
+{
+    public static void ShowStudentMenu()
+    {
+        while (true)
+        {
+            Console.WriteLine("\n--- Student Menu ---");
+            Console.WriteLine("1. Barcha studentlarni ko‘rish");
+            Console.WriteLine("2. Yangi student qo‘shish");
+            Console.WriteLine("3. Studentni o‘chirish");
+            Console.WriteLine("4. Orqaga qaytish");
+            Console.Write("Tanlang: ");
+            var input = Console.ReadLine();
+
+            switch (input)
+            {
+                case "1":
+                    GetAllStudents();
+                    break;
+                case "2":
+                    CreateStudent();
+                    break;
+                case "3":
+                    DeleteStudent();
+                    break;
+                case "4":
+                {
+                   return;
+                }
+                    
+                default:
+                    Console.WriteLine("Noto‘g‘ri tanlov!");
+                    break;
+            }
+            Console.WriteLine("Davom etish uchun Enter tugmasini bosing...");
+            Console.ReadLine();
+        }
+    }
+
+    private static void GetAllStudents()
+    {
+        using var context = new AppDbContext();
+        var students = context.Students.ToList();
+
+        Console.WriteLine("\n--- STUDENT MA'LUMOTLARI ---\n");
+        foreach (var student in students)
+        {
+            Console.WriteLine($"ID: {student.Id}");
+            Console.WriteLine($"Ism: {student.Name}");
+
+            var city = context.Cities.FirstOrDefault(c => c.Id == student.CityId);
+            Console.WriteLine($"Shahar: {(city != null ? city.Name : "Noma'lum")}");
+
+            Console.WriteLine($"Tug'ilgan sana: {student.DateOfBirth:yyyy-MM-dd}");
+            Console.WriteLine($"Jinsi: {student.Gender}");
+            
+            Console.WriteLine($"Sinf darajasi: {student.GradeLevel}");
+
+            var department = context.Departments.FirstOrDefault(d => d.Id == student.DepartmentId);
+            Console.WriteLine($"Bo'lim: {(department != null ? department.Name : "Noma'lum")}");
+
+            Console.WriteLine($"Yaratilgan sana: {student.CreatedDate:yyyy-MM-dd}");
+            Console.WriteLine("---------------------------------------\n");
+        }
+    }
+
+private static void CreateStudent()
+{
+    Console.Write("Ism Familiya kiriting: ");
+    var name = Console.ReadLine();
+
+    Console.Write("CityId: ");
+    var cityId = Convert.ToInt32(Console.ReadLine());
+
+    Console.Write("DateOfBirth (yyyy-MM-dd) kiriting: ");
+    var dateOfBirth = Convert.ToDateTime(Console.ReadLine());
+    dateOfBirth = DateTime.SpecifyKind(dateOfBirth, DateTimeKind.Utc);
+
+    Console.Write("Gender (Male/Female) kiriting: ");
+    var gender = Console.ReadLine();
+
+    Console.Write("GradeLevel: ");
+    var gradeLevel = Convert.ToInt32(Console.ReadLine());
+
+    Console.Write("DepartmentId: ");
+    var departmentId = Convert.ToInt32(Console.ReadLine());
+
+    Console.Write("Fan uchun ball (Mark = 0-100): ");
+    var mark = Convert.ToInt32(Console.ReadLine());
+
+    using var context = new AppDbContext();
+
+
+    var subjects = context.Subjects.ToList();
+    if (!subjects.Any())
+    {
+        Console.WriteLine("Fanlar topilmadi. Avval subject qo‘shing.");
+        return;
+    }
+
+    Console.WriteLine("Fanlardan birini tanlang:");
+    foreach (var s in subjects)
+        Console.WriteLine($"{s.Id}. {s.Name}");
+
+    Console.Write("Subject Id kiriting: ");
+    var subjectId = Convert.ToInt32(Console.ReadLine());
+
+
+    var subject = context.Subjects.FirstOrDefault(s => s.Id == subjectId);
+    if (subject == null)
+    {
+        Console.WriteLine("Subject topilmadi.");
+        return;
+    }
+
+
+    var student = new StudentTeacher.Student.Student
+    {
+        Name = name,
+        CityId = cityId,
+        DateOfBirth = dateOfBirth,
+        Gender = gender,
+        GradeLevel = gradeLevel,
+        DepartmentId = departmentId,
+        CreatedDate = DateTime.UtcNow,
+        StudentsSubjects = new List<StudentsSubjects>
+        {
+            new()
+            {
+                Subject = subject,
+                Mark = mark
+            }
+        }
+    };
+
+    context.Students.Add(student);
+    context.SaveChanges();
+
+    Console.WriteLine("Student muvaffaqiyatli qo‘shildi.");
+}
+
+
+    private static void DeleteStudent()
+    {
+        Console.Write("O‘chirmoqchi bo‘lgan student ID sini kiriting: ");
+        if (int.TryParse(Console.ReadLine(), out var id))
+        {
+            using var context = new AppDbContext();
+
+            var student = context.Students
+                .Include(s => s.StudentsSubjects) 
+                .FirstOrDefault(s => s.Id == id);
+
+            if (student != null)
+            {
+                context.Students.Remove(student);
+                context.SaveChanges();
+
+                Console.WriteLine(" Student va unga bog‘langan fanlar (StudentsSubjects) o‘chirildi.");
+            }
+            else
+            {
+                Console.WriteLine(" Student topilmadi.");
+            }
+        }
+        else
+        {
+            Console.WriteLine(" Noto‘g‘ri ID kiritildi.");
+        }
+    }
+
+}
