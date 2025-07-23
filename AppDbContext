@@ -1,0 +1,100 @@
+using Microsoft.EntityFrameworkCore;
+using StudentTeacher.city;
+using StudentTeacher.others;
+using StudentTeacher.Student;
+using StudentTeacher.Teacher;
+
+namespace StudentTeacher;
+
+public class AppDbContext : DbContext
+{
+    public DbSet<Student.Student> Students => Set<Student.Student>();
+    public DbSet<Teacher.Teacher> Teachers => Set<Teacher.Teacher>();
+    public DbSet<Subject> Subjects => Set<Subject>();
+    public DbSet<StudentsSubjects> StudentsSubjects => Set<StudentsSubjects>();
+    public DbSet<TeacherSubject> TeacherSubjects => Set<TeacherSubject>();
+    public DbSet<Departments> Departments => Set<Departments>();
+    public DbSet<City> Cities => Set<City>();
+
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+    public AppDbContext() { }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=demondb2;Username=postgres;Password=1234");
+        }
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+       
+        modelBuilder.Entity<StudentsSubjects>()
+            .HasKey(ss => new { ss.StudentId, ss.SubjectId });
+
+        modelBuilder.Entity<StudentsSubjects>()
+            .HasOne(ss => ss.Student)
+            .WithMany(s => s.StudentsSubjects)
+            .HasForeignKey(ss => ss.StudentId);
+           
+
+        modelBuilder.Entity<StudentsSubjects>()
+            .HasOne(ss => ss.Subject)
+            .WithMany(s => s.StudentsSubjects)
+            .HasForeignKey(ss => ss.SubjectId);
+        
+        modelBuilder.Entity<Student.Student>()
+            .HasOne(s => s.City)
+            .WithMany(c => c.Students)
+            .HasForeignKey(s => s.CityId);
+        
+        modelBuilder.Entity<Student.Student>()
+            .Ignore(s => s.City);
+
+        
+        modelBuilder.Entity<TeacherSubject>()
+            .HasKey(ts => new { ts.TeacherId, ts.SubjectId });
+
+        modelBuilder.Entity<TeacherSubject>()
+            .HasOne(ts => ts.Teacher)
+            .WithMany(t => t.TeacherSubjects)
+            .HasForeignKey(ts => ts.TeacherId);
+
+        modelBuilder.Entity<TeacherSubject>()
+            .HasOne(ts => ts.Subject)
+            .WithMany(s => s.TeacherSubjects)
+            .HasForeignKey(ts => ts.SubjectId);
+
+        
+        modelBuilder.Entity<City>().HasData(
+            new City { Id = 1, Name = "Toshkent" },
+            new City { Id = 2, Name = "Samarqand" },
+            new City { Id = 3, Name = "Buxoro"},
+            new City { Id = 4, Name = "Andijon" }
+        );
+
+
+       
+        modelBuilder.Entity<Departments>().HasData(
+            new Departments { Id = 1, Name = "Informatika" },
+            new Departments { Id = 2, Name = "Fizika" },
+            new Departments { Id = 3, Name = "Biologiya" }
+        );
+
+        
+        modelBuilder.Entity<Subject>().HasData(
+            new Subject { Id = 1, Name = "Matematika" },
+            new Subject { Id = 2, Name = "Fizika" },
+            new Subject { Id = 3, Name = "Biologiya" },
+            new Subject { Id = 4, Name = "Geografiya" },
+            new Subject { Id = 5, Name = "Kimyo" }
+        );
+        
+        
+      
+    }
+}
