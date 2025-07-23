@@ -1,0 +1,20 @@
+namespace StudentTeacher.Student;
+using StudentTeacher.city;
+
+public class Student
+{
+    public int Id { get; init; }
+    public string Name { get; set; }
+
+    public int CityId { get; set; }
+    public City City { get; set; }
+    public DateTime DateOfBirth { get; set; } = DateTime.UtcNow;
+    public string Gender { get; set; }
+    public int GradeLevel  { get; set; }
+    public int DepartmentId { get; set; }
+    public DateTime CreatedDate {get; init;}  = DateTime.UtcNow;
+    
+    public List<StudentsSubjects> StudentsSubjects { get; set; }
+    
+   
+}
