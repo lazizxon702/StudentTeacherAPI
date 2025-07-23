@@ -1,0 +1,60 @@
+using Microsoft.EntityFrameworkCore;
+using StudentTeacher.ConsoleApp;
+
+
+namespace StudentTeacher;
+
+public class Program
+{
+    public static void Main()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseNpgsql("Host=localhost;Port=5432;Database=demondb2;Username=postgres;Password=1234")
+            .Options;
+
+        using var context = new AppDbContext(options);
+
+        MainMenu:
+       
+        Console.Write ("Choose : \n 1. Student \n 2. Teacher \n 3. top 10  \n 4. Exit \n");
+        Console.Write("  Choose menu: ");
+        var n =Convert.ToInt32(Console.ReadLine());
+        if (n <= 4)
+        {
+            switch (n)
+            {
+                case 1:
+                {
+                    StudentConsole.ShowStudentMenu();
+                    Console.Clear();
+                    goto MainMenu;
+                }
+                case 2:
+                {
+                    TeacherConsole.ShowTeacherMenu();
+                    Console.Clear();
+                    goto MainMenu;
+                }
+                case 3:
+                {
+                    Get10StudentsByMark.Top10StudentsByMark();
+                    
+                    goto MainMenu;
+                }
+
+                case 4:
+                {
+                    Console.WriteLine(" YOU EXIT THE PROGRAM!!! ");
+                    return;
+                }
+
+            }
+        }
+        else
+        {
+            Console.WriteLine(" 404 Not Found! \n Boshqattan urinib ko'ring!");
+            goto MainMenu;
+        }
+        
+    }
+}
