@@ -1,0 +1,22 @@
+using StudentTeacher.city;
+
+namespace StudentTeacher.Teacher;
+
+public class Teacher
+{
+    public int Id { get; init; }
+    public string? Name { get; init; }
+    public int CityId { get; init; }
+    public City City { get; set; }
+    public DateTime DateOfBirth { get; init; } = DateTime.UtcNow;
+    public string? Gender { get; init; }
+    public int SubjectId { get; init; }  
+    public int DepartmentId { get; set; }
+    public DateTime CreatedDate {get; init;} = DateTime.UtcNow;
+    
+    public DateTime LastUpdatedDate  { get; set; } = DateTime.UtcNow;
+    public ICollection<TeacherSubject> TeacherSubjects { get; set; } = new List<TeacherSubject>();
+    
+
+
+}
