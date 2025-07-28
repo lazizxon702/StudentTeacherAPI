@@ -24,7 +24,7 @@ public class AppDbContext : DbContext
     {
         if (!optionsBuilder.IsConfigured)
         {
-            optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=demondb2;Username=postgres;Password=1234");
+            optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=demondbb;Username=postgres;Password=1234");
         }
     }
 
@@ -32,60 +32,153 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-       
-        modelBuilder.Entity<StudentsSubjects>()
-            .HasKey(ss => new { ss.StudentId, ss.SubjectId });
+    modelBuilder.Entity<Student.Student>(entity =>
+    {
+        entity.ToTable("Talabalar");
 
-        modelBuilder.Entity<StudentsSubjects>()
-            .HasOne(ss => ss.Student)
-            .WithMany(s => s.StudentsSubjects)
-            .HasForeignKey(ss => ss.StudentId);
-           
-
-        modelBuilder.Entity<StudentsSubjects>()
-            .HasOne(ss => ss.Subject)
-            .WithMany(s => s.StudentsSubjects)
-            .HasForeignKey(ss => ss.SubjectId);
+        entity.HasKey(s => s.Id);
         
-        modelBuilder.Entity<Student.Student>()
-            .HasOne(s => s.City)
-            .WithMany(c => c.Students)
-            .HasForeignKey(s => s.CityId);
-        
-        modelBuilder.Entity<Student.Student>()
-            .Ignore(s => s.City);
+        entity.Property(s => s.Name)
+              .IsRequired()
+              .HasMaxLength(100)
+              .HasColumnName("full_name");
 
-        
-        modelBuilder.Entity<TeacherSubject>()
-            .HasKey(ts => new { ts.TeacherId, ts.SubjectId });
+        entity.Property(s => s.Gender)
+              .IsRequired()
+              .HasMaxLength(10)
+              .HasColumnName("gender");
 
-        modelBuilder.Entity<TeacherSubject>()
-            .HasOne(ts => ts.Teacher)
-            .WithMany(t => t.TeacherSubjects)
-            .HasForeignKey(ts => ts.TeacherId);
+        entity.Property(s => s.DateOfBirth)
+              .IsRequired()
+              .HasColumnName("birth_date");
 
-        modelBuilder.Entity<TeacherSubject>()
-            .HasOne(ts => ts.Subject)
-            .WithMany(s => s.TeacherSubjects)
-            .HasForeignKey(ts => ts.SubjectId);
+        entity.Property(s => s.GradeLevel)
+              .HasDefaultValue(1)
+              .HasColumnName("grade_level");
 
-        
+        entity.Property(s => s.CityId)
+              .HasColumnName("city_id");
+
+        entity.Property(s => s.DepartmentId)
+              .HasColumnName("department_id");
+
+        entity.HasOne(s => s.City)
+              .WithMany(c => c.Students)
+              .HasForeignKey(s => s.CityId)
+              .OnDelete(DeleteBehavior.Restrict);
+
+        entity.HasOne(s => s.Departments)
+              .WithMany(d => d.Students)
+              .HasForeignKey(s => s.DepartmentId)
+              .OnDelete(DeleteBehavior.Restrict);
+    });
+
+    modelBuilder.Entity<Teacher.Teacher>(entity =>
+    {
+        entity.ToTable("O'qituvchi");
+
+        entity.HasKey(t => t.Id);
+
+     
+
+        entity.Property(t => t.Name)
+              .IsRequired()
+              .HasMaxLength(100)
+              .HasColumnName("full_name");
+
+        entity.Property(t => t.Gender)
+              .IsRequired()
+              .HasMaxLength(10)
+              .HasColumnName("gender");
+
+        entity.Property(t => t.DateOfBirth)
+              .IsRequired()
+              .HasColumnName("birth_date");
+    });
+
+  
+    modelBuilder.Entity<Subject>(entity =>
+    {
+        entity.ToTable("Subjects");
+
+        entity.HasKey(s => s.Id);
+
+        entity.Property(s => s.Id).HasColumnName("subject_id");
+
+        entity.Property(s => s.Name)
+              .IsRequired()
+              .HasMaxLength(100)
+              .HasColumnName("subject_name");
+    });
+
+    modelBuilder.Entity<City>(entity =>
+    {
+        entity.ToTable("Cities");
+
+        entity.HasKey(c => c.Id);
+
+        entity.Property(c => c.Id).HasColumnName("city_id");
+
+        entity.Property(c => c.Name)
+              .IsRequired()
+              .HasMaxLength(100)
+              .HasColumnName("city_name");
+    });
+
+
+    modelBuilder.Entity<Departments>(entity =>
+    {
+        entity.ToTable("Departments");
+
+        entity.HasKey(d => d.Id);
+
+        entity.Property(d => d.Id).HasColumnName("department_id");
+
+        entity.Property(e => e.Name)
+            .IsRequired()
+            .HasMaxLength(100)
+            .HasColumnName("department_name");
+    });
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        modelBuilder.Entity<StudentsSubjects>(entity =>
+        {
+            entity.HasKey(e => new { e.StudentId, e.SubjectId });
+
+            entity.HasOne(e => e.Student)
+                  .WithMany(s => s.StudentsSubjects)
+                  .HasForeignKey(e => e.StudentId);
+
+            entity.HasOne(e => e.Subject)
+                  .WithMany(s => s.StudentsSubjects)
+                  .HasForeignKey(e => e.SubjectId);
+        });
+
+        modelBuilder.Entity<TeacherSubject>(entity =>
+        {
+            entity.HasKey(e => new { e.TeacherId, e.SubjectId });
+
+            entity.HasOne(e => e.Teacher)
+                  .WithMany(t => t.TeacherSubjects)
+                  .HasForeignKey(e => e.TeacherId);
+
+            entity.HasOne(e => e.Subject)
+                  .WithMany(s => s.TeacherSubjects)
+                  .HasForeignKey(e => e.SubjectId);
+        });
+
         modelBuilder.Entity<City>().HasData(
             new City { Id = 1, Name = "Toshkent" },
             new City { Id = 2, Name = "Samarqand" },
-            new City { Id = 3, Name = "Buxoro"},
+            new City { Id = 3, Name = "Buxoro" },
             new City { Id = 4, Name = "Andijon" }
         );
 
-
-       
         modelBuilder.Entity<Departments>().HasData(
             new Departments { Id = 1, Name = "Informatika" },
             new Departments { Id = 2, Name = "Fizika" },
             new Departments { Id = 3, Name = "Biologiya" }
         );
 
-        
         modelBuilder.Entity<Subject>().HasData(
             new Subject { Id = 1, Name = "Matematika" },
             new Subject { Id = 2, Name = "Fizika" },
@@ -93,8 +186,5 @@ public class AppDbContext : DbContext
             new Subject { Id = 4, Name = "Geografiya" },
             new Subject { Id = 5, Name = "Kimyo" }
         );
-        
-        
-      
     }
 }
